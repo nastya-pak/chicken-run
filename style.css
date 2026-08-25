@@ -23,56 +23,19 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 108px;
-  height: 90px;
+  width: 150px;
+  height: 110px;
   user-select: none;
   will-change: transform;
-  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.25));
-  --leg-duration: 0.55s;
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.3));
 }
 
-#chickenSvg {
+#chickenImg {
   display: block;
   width: 100%;
   height: 100%;
-  overflow: visible;
-}
-
-.leg-bone {
-  stroke: url(#legGrad);
-  stroke-width: 5;
-  stroke-linecap: round;
-}
-
-.leg-scale {
-  stroke: #96631a;
-  stroke-width: 0.8;
-  stroke-linecap: round;
-  opacity: 0.55;
-}
-
-.foot line {
-  stroke: url(#legGrad);
-  stroke-width: 4;
-  stroke-linecap: round;
-}
-
-.leg-rotator {
-  transform-origin: 0px 0px;
-}
-
-#chicken.walking .leg-back {
-  animation: legSwing var(--leg-duration) ease-in-out infinite;
-}
-
-#chicken.walking .leg-front {
-  animation: legSwing var(--leg-duration) ease-in-out infinite;
-  animation-delay: calc(var(--leg-duration) / -2);
-}
-
-@keyframes legSwing {
-  0%, 100% { transform: rotate(-20deg); }
-  50% { transform: rotate(20deg); }
+  object-fit: contain;
+  pointer-events: none;
 }
 
 #score {
