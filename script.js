@@ -22,10 +22,11 @@ const ACCEL = 0.9;
 const FRICTION = 0.9;
 const CLUCK_COOLDOWN = 4000;
 const WALK_THRESHOLD = 0.4;
-const MIN_LEG_DURATION = 0.16;
-const MAX_LEG_DURATION = 0.7;
 
 let lastCluckTime = -Infinity;
+let currentPose = "idle";
+
+const chickenImg = document.getElementById("chickenImg");
 
 const cluckSound = new Audio("clucking-chicken.mp3");
 cluckSound.preload = "auto";
@@ -108,12 +109,10 @@ function update() {
     state.vy = (state.vy / speed) * MAX_SPEED;
   }
 
-  if (speed > WALK_THRESHOLD) {
-    chicken.classList.add("walking");
-    const legDuration = Math.max(MIN_LEG_DURATION, MAX_LEG_DURATION - speed * 0.06);
-    chicken.style.setProperty("--leg-duration", `${legDuration}s`);
-  } else {
-    chicken.classList.remove("walking");
+  const pose = speed > WALK_THRESHOLD ? "run" : "idle";
+  if (pose !== currentPose) {
+    currentPose = pose;
+    chickenImg.src = pose === "run" ? "chicken-run.png" : "chicken-idle.png";
   }
 
   state.x += state.vx;
@@ -141,7 +140,7 @@ function update() {
     state.facingLeft = state.vx < 0;
   }
 
-  const flip = state.facingLeft ? -1 : 1;
+  const flip = state.facingLeft ? 1 : -1;
   const wobble = Math.sin(performance.now() / 90) * (speed > 1 ? 6 : 0);
   chicken.style.transform =
     `translate(${state.x - size / 2}px, ${state.y - size / 2}px) ` +
