@@ -26,13 +26,15 @@ const WALK_THRESHOLD = 0.4;
 let lastCluckTime = -Infinity;
 let currentPose = "idle";
 
+const ASSET_VERSION = "v3";
 const RUN_FRAME_PATHS = [
-  "chicken-run-1.png",
-  "chicken-run-2.png",
-  "chicken-run-3.png",
-  "chicken-run-4.png",
-  "chicken-run-5.png",
+  `chicken-run-1.png?${ASSET_VERSION}`,
+  `chicken-run-2.png?${ASSET_VERSION}`,
+  `chicken-run-3.png?${ASSET_VERSION}`,
+  `chicken-run-4.png?${ASSET_VERSION}`,
+  `chicken-run-5.png?${ASSET_VERSION}`,
 ];
+const IDLE_FRAME_PATH = `chicken-idle.png?${ASSET_VERSION}`;
 RUN_FRAME_PATHS.forEach((src) => {
   const preload = new Image();
   preload.src = src;
@@ -172,7 +174,7 @@ function update() {
   if (pose !== currentPose) {
     currentPose = pose;
     if (pose === "idle") {
-      chickenImg.src = "chicken-idle.png";
+      chickenImg.src = IDLE_FRAME_PATH;
     } else {
       runFrameIndex = 0;
       lastFrameSwitch = now;
