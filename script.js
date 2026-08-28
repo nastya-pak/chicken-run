@@ -16,7 +16,7 @@ const mouse = {
   y: -9999,
 };
 
-const FLEE_RADIUS = 180;
+const IS_TOUCH = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 const MAX_SPEED = 9;
 const ACCEL = 0.9;
 const FRICTION = 0.9;
@@ -25,6 +25,16 @@ const WALK_THRESHOLD = 0.4;
 
 let lastCluckTime = -Infinity;
 let currentPose = "idle";
+
+function computeFleeRadius() {
+  const minSide = Math.min(window.innerWidth, window.innerHeight);
+  return Math.max(90, Math.min(180, minSide * 0.4));
+}
+
+let fleeRadius = computeFleeRadius();
+window.addEventListener("resize", () => {
+  fleeRadius = computeFleeRadius();
+});
 
 const chickenImg = document.getElementById("chickenImg");
 
@@ -60,8 +70,40 @@ window.addEventListener("mouseleave", () => {
   mouse.y = -9999;
 });
 
+const scene = document.getElementById("scene");
+
+function handleTouchMove(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  if (!touch) return;
+  mouse.x = touch.clientX;
+  mouse.y = touch.clientY;
+}
+
+function handleTouchEnd(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  if (touch) {
+    mouse.x = touch.clientX;
+    mouse.y = touch.clientY;
+  } else {
+    mouse.x = -9999;
+    mouse.y = -9999;
+  }
+}
+
+scene.addEventListener("touchstart", handleTouchMove, { passive: false });
+scene.addEventListener("touchmove", handleTouchMove, { passive: false });
+scene.addEventListener("touchend", handleTouchEnd, { passive: false });
+scene.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+
 const startOverlay = document.getElementById("startOverlay");
 const startButton = document.getElementById("startButton");
+const hint = document.getElementById("hint");
+
+if (IS_TOUCH) {
+  hint.textContent = "Попробуй поймать курицу пальцем!";
+}
 
 startButton.addEventListener("click", () => {
   unlockAudio();
@@ -78,8 +120,8 @@ function update() {
   const dy = state.y - mouse.y;
   const dist = Math.hypot(dx, dy);
 
-  if (dist < FLEE_RADIUS) {
-    const strength = (1 - dist / FLEE_RADIUS) * ACCEL * 3.2;
+  if (dist < fleeRadius) {
+    const strength = (1 - dist / fleeRadius) * ACCEL * 3.2;
     const nx = dist === 0 ? Math.random() - 0.5 : dx / dist;
     const ny = dist === 0 ? Math.random() - 0.5 : dy / dist;
     state.vx += nx * strength;
