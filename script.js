@@ -26,6 +26,21 @@ const WALK_THRESHOLD = 0.4;
 let lastCluckTime = -Infinity;
 let currentPose = "idle";
 
+const RUN_FRAME_PATHS = [
+  "chicken-run-1.png",
+  "chicken-run-2.png",
+  "chicken-run-3.png",
+  "chicken-run-4.png",
+  "chicken-run-5.png",
+];
+RUN_FRAME_PATHS.forEach((src) => {
+  const preload = new Image();
+  preload.src = src;
+});
+
+let runFrameIndex = 0;
+let lastFrameSwitch = -Infinity;
+
 function computeFleeRadius() {
   const minSide = Math.min(window.innerWidth, window.innerHeight);
   return Math.max(90, Math.min(180, minSide * 0.4));
@@ -152,9 +167,26 @@ function update() {
   }
 
   const pose = speed > WALK_THRESHOLD ? "run" : "idle";
+  const now = performance.now();
+
   if (pose !== currentPose) {
     currentPose = pose;
-    chickenImg.src = pose === "run" ? "chicken-run.png" : "chicken-idle.png";
+    if (pose === "idle") {
+      chickenImg.src = "chicken-idle.png";
+    } else {
+      runFrameIndex = 0;
+      lastFrameSwitch = now;
+      chickenImg.src = RUN_FRAME_PATHS[runFrameIndex];
+    }
+  }
+
+  if (pose === "run") {
+    const frameInterval = Math.max(70, 220 - speed * 15);
+    if (now - lastFrameSwitch > frameInterval) {
+      lastFrameSwitch = now;
+      runFrameIndex = (runFrameIndex + 1) % RUN_FRAME_PATHS.length;
+      chickenImg.src = RUN_FRAME_PATHS[runFrameIndex];
+    }
   }
 
   state.x += state.vx;
@@ -187,10 +219,10 @@ function update() {
   let bobY = 0;
   let tilt = 0;
   if (pose === "run") {
-    const stridePhase = performance.now() * (0.008 + speed * 0.004);
+    const stridePhase = now * (0.008 + speed * 0.004);
     const strideCycle = Math.abs(Math.sin(stridePhase));
-    bobY = -strideCycle * 9;
-    tilt = Math.sin(stridePhase) * 5 * (state.facingLeft ? -1 : 1);
+    bobY = -strideCycle * 5;
+    tilt = Math.sin(stridePhase) * 3 * (state.facingLeft ? -1 : 1);
   }
 
   chicken.style.transform =
