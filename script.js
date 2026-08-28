@@ -20,10 +20,9 @@ const IS_TOUCH = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 const MAX_SPEED = 9;
 const ACCEL = 0.9;
 const FRICTION = 0.9;
-const CLUCK_COOLDOWN = 4000;
 const WALK_THRESHOLD = 0.4;
+const FADE_MS = 180;
 
-let lastCluckTime = -Infinity;
 let currentPose = "idle";
 
 const ASSET_VERSION = "v3";
@@ -57,24 +56,53 @@ const chickenImg = document.getElementById("chickenImg");
 
 const cluckSound = new Audio("clucking-chicken.mp3");
 cluckSound.preload = "auto";
+cluckSound.loop = true;
 let audioUnlocked = false;
+let isCluckPlaying = false;
+let fadeInterval = null;
 
 function unlockAudio() {
   if (audioUnlocked) return;
   audioUnlocked = true;
   cluckSound.volume = 1;
+  cluckSound
+    .play()
+    .then(() => {
+      cluckSound.pause();
+      cluckSound.currentTime = 0;
+    })
+    .catch((err) => {
+      audioUnlocked = false;
+      console.error("Не удалось запустить звук:", err);
+    });
+}
+
+function startCluck() {
+  if (isCluckPlaying) return;
+  isCluckPlaying = true;
+  clearInterval(fadeInterval);
+  cluckSound.volume = 1;
   cluckSound.play().catch((err) => {
-    audioUnlocked = false;
-    console.error("Не удалось запустить звук:", err);
+    console.error("Не удалось воспроизвести кудахтанье:", err);
   });
 }
 
-function playCluck() {
-  const clip = cluckSound.cloneNode();
-  clip.volume = 1;
-  clip.play().catch((err) => {
-    console.error("Не удалось воспроизвести кудахтанье:", err);
-  });
+function stopCluck() {
+  if (!isCluckPlaying) return;
+  isCluckPlaying = false;
+  clearInterval(fadeInterval);
+  const steps = 6;
+  let step = 0;
+  fadeInterval = setInterval(() => {
+    step++;
+    cluckSound.volume = Math.max(0, 1 - step / steps);
+    if (step >= steps) {
+      clearInterval(fadeInterval);
+      cluckSound.pause();
+      cluckSound.currentTime = 0;
+      cluckSound.volume = 1;
+    }
+  }, FADE_MS / steps);
 }
 
 window.addEventListener("mousemove", (e) => {
@@ -148,12 +176,6 @@ function update() {
       state.scared = true;
       state.score += 1;
       scoreValue.textContent = state.score;
-
-      const now = performance.now();
-      if (now - lastCluckTime > CLUCK_COOLDOWN) {
-        lastCluckTime = now;
-        playCluck();
-      }
     }
   } else {
     state.scared = false;
@@ -175,10 +197,12 @@ function update() {
     currentPose = pose;
     if (pose === "idle") {
       chickenImg.src = IDLE_FRAME_PATH;
+      stopCluck();
     } else {
       runFrameIndex = 0;
       lastFrameSwitch = now;
       chickenImg.src = RUN_FRAME_PATHS[runFrameIndex];
+      startCluck();
     }
   }
 
