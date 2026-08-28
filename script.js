@@ -183,10 +183,19 @@ function update() {
   }
 
   const flip = state.facingLeft ? 1 : -1;
-  const wobble = Math.sin(performance.now() / 90) * (speed > 1 ? 6 : 0);
+
+  let bobY = 0;
+  let tilt = 0;
+  if (pose === "run") {
+    const stridePhase = performance.now() * (0.008 + speed * 0.004);
+    const strideCycle = Math.abs(Math.sin(stridePhase));
+    bobY = -strideCycle * 9;
+    tilt = Math.sin(stridePhase) * 5 * (state.facingLeft ? -1 : 1);
+  }
+
   chicken.style.transform =
-    `translate(${state.x - size / 2}px, ${state.y - size / 2}px) ` +
-    `scaleX(${flip}) rotate(${wobble * (state.facingLeft ? -1 : 1)}deg)`;
+    `translate(${state.x - size / 2}px, ${state.y - size / 2 + bobY}px) ` +
+    `scaleX(${flip}) rotate(${tilt}deg)`;
 
   requestAnimationFrame(update);
 }
