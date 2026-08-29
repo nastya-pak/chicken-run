@@ -142,6 +142,55 @@ scene.addEventListener("touchmove", handleTouchMove, { passive: false });
 scene.addEventListener("touchend", handleTouchEnd, { passive: false });
 scene.addEventListener("touchcancel", handleTouchEnd, { passive: false });
 
+const starsContainer = document.getElementById("stars");
+const STAR_COUNT = 90;
+
+function generateStars() {
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < STAR_COUNT; i++) {
+    const star = document.createElement("div");
+    star.className = "star";
+    star.style.left = `${Math.random() * 100}%`;
+    star.style.top = `${Math.random() * 100}%`;
+    const size = 1 + Math.random() * 2;
+    star.style.width = `${size}px`;
+    star.style.height = `${size}px`;
+    star.style.animationDelay = `${(Math.random() * 3).toFixed(2)}s`;
+    star.style.animationDuration = `${(2 + Math.random() * 3).toFixed(2)}s`;
+    frag.appendChild(star);
+  }
+  starsContainer.appendChild(frag);
+}
+
+generateStars();
+
+const themeToggle = document.getElementById("themeToggle");
+const THEME_KEY = "chickenRunTheme";
+
+function applyTheme(theme) {
+  const isNight = theme === "night";
+  document.body.classList.toggle("night", isNight);
+  themeToggle.textContent = isNight ? "☀️" : "🌙";
+}
+
+let savedTheme = "day";
+try {
+  savedTheme = localStorage.getItem(THEME_KEY) || "day";
+} catch (err) {
+  /* localStorage unavailable, fall back to day theme */
+}
+applyTheme(savedTheme);
+
+themeToggle.addEventListener("click", () => {
+  const nextTheme = document.body.classList.contains("night") ? "day" : "night";
+  applyTheme(nextTheme);
+  try {
+    localStorage.setItem(THEME_KEY, nextTheme);
+  } catch (err) {
+    /* localStorage unavailable, theme just won't persist */
+  }
+});
+
 const startOverlay = document.getElementById("startOverlay");
 const startButton = document.getElementById("startButton");
 const hint = document.getElementById("hint");
